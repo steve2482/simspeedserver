@@ -189,9 +189,9 @@ app.post('/channel-videos', (req, res) => {
     let channelId = data[0].youtubeId;
     let url;
     if (req.body.nextPageToken) {
-      url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&maxResults=12&pageToken=${req.body.nextPageToken}&key=${apiKey}`;
+      url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&type=video&maxResults=12&eventType=completed&pageToken=${req.body.nextPageToken}&key=${apiKey}`;
     } else {
-      url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&maxResults=12&key=${apiKey}`;
+      url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&type=video&maxResults=12&eventType=completed&key=${apiKey}`;
     }    
     let request = new Request(url, {
       method: 'GET',
