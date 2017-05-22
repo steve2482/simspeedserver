@@ -1,13 +1,38 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-// user schema
-const userSchema = mongoose.Schema({
+// User Schema
+const UserSchema = mongoose.Schema({
   name: String,
+  email: String,
   userName: String,
   password: String,
-  favoritedChannels: Array
+  favoriteChannels: Array
 });
 
-const User = mongoose.model('User', userSchema);
+const User = module.exports = mongoose.model('User', UserSchema);
 
-module.exports = {User};
+module.exports.createUser = function(newUser, callback) {
+  bcrypt.genSalt(10, function(err, salt) {
+    bcrypt.hash(newUser.password, salt, function(err, hash) {
+      newUser.password = hash;
+      newUser.save(callback);
+    });
+  });
+};
+
+module.exports.getUserByUsername = function(username, callback) {
+  let query = {userName: username};
+  User.findOne(query, callback);
+};
+
+module.exports.getUserById = function(id, callback) {
+  User.findById(id, callback);
+};
+
+module.exports.comparePassword = function(candidatePassword, hash, callback) {
+  bcrypt.compare(candidatePassword, hash, function(err, isMatch) {
+    if (err) throw err;
+    callback(null, isMatch);
+  });
+};

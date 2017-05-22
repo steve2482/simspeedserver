@@ -4,7 +4,7 @@
   "description": "Application to find all the live sim racing events you would ever want.",
   "main": "public/js/index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "author": "Steve Brown",
   "license": "UNLICENSED",
@@ -16,9 +16,11 @@
     "mocha": "^3.0.1"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.17.1",
     "cors": "^2.8.3",
     "express": "^4.15.3",
+    "express-validator": "^3.2.0",
     "isomorphic-fetch": "^2.2.1",
     "mongoose": "^4.9.8",
     "passport": "^0.3.2",
