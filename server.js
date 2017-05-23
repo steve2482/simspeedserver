@@ -4,7 +4,7 @@ const cors = require('cors');
 const fetch = require('isomorphic-fetch');
 const bodyParser = require('body-parser');
 const passport = require('passport');
-const LocalStrategy = require('passport-local');
+const LocalStrategy = require('passport-local').Strategy;
 const expressValidator = require('express-validator');
 
 if (process.env.NODE_ENV !== 'production') {
@@ -95,8 +95,8 @@ app.post('/register', (req, res) => {
 // Sign in strategy===================================================
 // ===================================================================
 passport.use(new LocalStrategy(
-  function(username, password, done) {
-    User.getUserByUsername(username, function(err, user) {
+  function(userName, password, done) {
+    User.getUserByUsername(userName, function(err, user) {
       if (err) {
         throw err;
       }
@@ -129,10 +129,9 @@ passport.deserializeUser(function(id, done) {
 // User Login=========================================================
 // ===================================================================
 app.post('/login',
-  passport.authenticate('local', {successRedirect: '/', failureRedirect: '/users/login', failureFlash: true}),
+  passport.authenticate('local'),
   function(req, res) {
-    let isLoggedIn = !!req.user;
-    res.redirect('/', {loggedIn: isLoggedIn});
+    res.status(200).json(req.body.username);
   });
 
 // User Logout
