@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const expressValidator = require('express-validator');
+const session = require('express-session');
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -16,6 +17,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(passport.initialize());
+app.use(passport.session());
 
 // ===========================================================================
 // DATABASE SETUP=============================================================
@@ -30,6 +32,16 @@ const User = require('./models/user');
 // ===========================================================================
 // PASSPORT SETUP=============================================================
 // ===========================================================================
+
+// Express Session====================================================
+// ===================================================================
+app.use(session({
+  secret: 'secret',
+  saveUninitialized: true,
+  resave: true,
+  cookie: {maxAge: 60 * 60 * 1000},
+  rolling: true
+}));
 
 // Express Validator==========================================================
 // ===========================================================================
@@ -50,6 +62,8 @@ app.use(expressValidator({
   }
 }));
 
+// User Registration=======================================================
+// ========================================================================
 app.post('/register', (req, res) => {
   console.log(req.body);
   let name = req.body.name;
@@ -85,7 +99,7 @@ app.post('/register', (req, res) => {
         if (err) {
           throw err;
         } else {
-          res.status(200).json('Registration Sucessful');
+          res.status(200).json(user.userName);
         }
       });
     });
@@ -131,14 +145,14 @@ passport.deserializeUser(function(id, done) {
 app.post('/login',
   passport.authenticate('local'),
   function(req, res) {
-    res.status(200).json(req.body.username);
+    console.log(req.user);
+    res.status(200).json(req.user);
   });
 
-// User Logout
+// User Logout================================================================
+// ===========================================================================
 app.get('/logout', function(req, res) {
-  req.logout();
-  req.flash('success_msg', 'You have logged out');
-  res.redirect('/users/login');
+  req.logout();  
 });
 
 // ===========================================================================
