@@ -7,17 +7,24 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const expressValidator = require('express-validator');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
 app.use(express.static('public'));
-app.use(cors());
+var corsOptions = {
+  origin: 'http://localhost:3000',
+  optionsSuccessStatus: 200,
+  credentials: true
+}
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
 app.use(passport.initialize());
-app.use(passport.session());
+
 
 // ===========================================================================
 // DATABASE SETUP=============================================================
@@ -33,15 +40,18 @@ const User = require('./models/user');
 // PASSPORT SETUP=============================================================
 // ===========================================================================
 
-// Express Session====================================================
-// ===================================================================
+// Express Session============================================================
+// ===========================================================================
 app.use(session({
   secret: 'secret',
-  saveUninitialized: true,
+  saveUninitialized: false,
   resave: true,
-  cookie: {maxAge: 60 * 60 * 1000},
+  cookie: {
+    maxAge: 60 * 60 * 1000
+  },
   rolling: true
 }));
+app.use(passport.session());
 
 // Express Validator==========================================================
 // ===========================================================================
@@ -145,14 +155,18 @@ passport.deserializeUser(function(id, done) {
 app.post('/login',
   passport.authenticate('local'),
   function(req, res) {
-    console.log(req.user);
-    res.status(200).json(req.user);
+    res.status(200).json(req.user.userName);
   });
 
 // User Logout================================================================
 // ===========================================================================
 app.get('/logout', function(req, res) {
-  req.logout();  
+  req.logout();
+  req.session.destroy(function(err) {
+    if (err) { return next(err); }
+    // The response should indicate that the user is no longer authenticated.
+    return res.send({ authenticated: req.isAuthenticated() });
+  });   
 });
 
 // ===========================================================================
@@ -196,6 +210,7 @@ app.get('/live', (req, res) => {
 // Get Single Channel Results=================================================
 // ===========================================================================
 app.post('/channel-videos', (req, res) => {
+  console.log(req.isAuthenticated());
   Channel.find({abreviatedName: req.body.channelName})
   .then(data => {
     let apiKey = process.env.YOUTUBE_API_KEY;
