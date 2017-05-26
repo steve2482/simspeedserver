@@ -109,7 +109,7 @@ app.post('/register', (req, res) => {
         if (err) {
           throw err;
         } else {
-          res.status(200).json(user.userName);
+          res.status(200).json(user);
         }
       });
     });
@@ -155,7 +155,7 @@ passport.deserializeUser(function(id, done) {
 app.post('/login',
   passport.authenticate('local'),
   function(req, res) {
-    res.status(200).json(req.user.userName);
+    res.status(200).json(req.user);
   });
 
 // User Logout================================================================
@@ -210,7 +210,6 @@ app.get('/live', (req, res) => {
 // Get Single Channel Results=================================================
 // ===========================================================================
 app.post('/channel-videos', (req, res) => {
-  console.log(req.isAuthenticated());
   Channel.find({abreviatedName: req.body.channelName})
   .then(data => {
     let apiKey = process.env.YOUTUBE_API_KEY;
@@ -231,6 +230,18 @@ app.post('/channel-videos', (req, res) => {
   })
   .catch(err => {
     console.log(err);
+  });
+});
+
+// User Favorite a Channel====================================================
+// ===========================================================================
+app.post('/favorite-channel', (req, res) => {
+  User.update(
+    {userName: req.body.userName},
+    {$push: {favoriteChannels: req.body.channel}}
+  )
+  .then(() => {
+    res.json(req.body.channel);
   });
 });
 
