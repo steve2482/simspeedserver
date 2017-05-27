@@ -15,7 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use(express.static('public'));
 var corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: 'http://localhost:3000' || 'http://simspeedtv.netlify.com',
   optionsSuccessStatus: 200,
   credentials: true
 }
