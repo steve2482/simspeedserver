@@ -246,12 +246,30 @@ app.post('/favorite-channel', (req, res) => {
       {$inc: {favorites: 1}}
     )
   })
-  .then((channel) => {
-    console.log(channel);
+  .then(() => {
     res.json(req.body.channel);
   })
   .catch(err => console.log(err));
 });
+
+// User UNFavorite a Channel==================================================
+// ===========================================================================
+app.post('/remove-channel', (req, res) => {
+  return User.update(
+    {userName: req.body.userName},
+    {$pull: {favoriteChannels: req.body.channel}}
+  )
+  .then(() => {
+    return Channel.update(
+      {abreviatedName: req.body.channel},
+      {$inc: {favorites: -1}}
+    )
+  })
+  .then(() => {
+    res.json(req.body.channel);
+  })
+  .catch(err => console.log(err));
+})
 
 // ===========================================================================
 // SERVER SETUP===============================================================
