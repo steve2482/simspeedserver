@@ -236,13 +236,21 @@ app.post('/channel-videos', (req, res) => {
 // User Favorite a Channel====================================================
 // ===========================================================================
 app.post('/favorite-channel', (req, res) => {
-  User.update(
+  return User.update(
     {userName: req.body.userName},
     {$push: {favoriteChannels: req.body.channel}}
   )
   .then(() => {
+    return Channel.update(
+      {abreviatedName: req.body.channel},
+      {$inc: {favorites: 1}}
+    )
+  })
+  .then((channel) => {
+    console.log(channel);
     res.json(req.body.channel);
-  });
+  })
+  .catch(err => console.log(err));
 });
 
 // ===========================================================================
