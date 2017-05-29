@@ -178,11 +178,11 @@ app.get('/logout', function(req, res) {
 app.get('/channel-names', (req, res) => {
   Channel.find().sort({'abreviatedName': 1})
   .then(data => {
-    const channelNames = [];
-    for (let i = 0; i < data.length; i++) {
-      channelNames.push(data[i].abreviatedName);
-    }
-    res.status(200).json(channelNames);
+    // const channelNames = [];
+    // for (let i = 0; i < data.length; i++) {
+    //   channelNames.push(data[i].abreviatedName);
+    // }
+    res.status(200).json(data);
   });
 });
 
