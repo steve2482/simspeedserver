@@ -91,35 +91,41 @@ app.post('/register', (req, res) => {
   req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
 
   let errors = req.validationErrors();
-  let existingUser;
   User.find({email: req.body.email})
   .then(existingUser => {
     if (errors) {
     res.status(400).json(errors);
     }
-    else if (existingUser.length > 0) {
+    if (existingUser.length > 0) {
       const message = [{msg: 'An account already exists with provided email address.'}];
       res.status(400).json(message);
     }
-    else {
-      let newUser = new User({
-        name: name,
-        email: email,
-        userName: userName,
-        password: password,
-        favoriteChannels: []
-      });
-      User.createUser(newUser, function(err, user) {
-        if (err) throw err;
-        req.login(user, function(err) {
-          if (err) {
-            throw err;
-          } else {
-            res.status(200).json(user);
-          }
+    User.find({userName: req.body.userName})
+    .then(user => {
+      if (user.length > 0) {
+        const message = [{msg: 'That Username is taken, please choose a different username.'}];
+        res.status(400).json(message);
+      }
+      else {
+        let newUser = new User({
+          name: name,
+          email: email,
+          userName: userName,
+          password: password,
+          favoriteChannels: []
         });
-      });
-    }     
+        User.createUser(newUser, function(err, user) {
+          if (err) throw err;
+          req.login(user, function(err) {
+            if (err) {
+              throw err;
+            } else {
+              res.status(200).json(user);
+            }
+          });
+        });
+      }
+    })         
   })  
 });
 
