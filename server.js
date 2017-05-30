@@ -75,7 +75,6 @@ app.use(expressValidator({
 // User Registration=======================================================
 // ========================================================================
 app.post('/register', (req, res) => {
-  console.log(req.body);
   let name = req.body.name;
   let email = req.body.email;
   let userName = req.body.userName;
@@ -92,28 +91,36 @@ app.post('/register', (req, res) => {
   req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
 
   let errors = req.validationErrors();
-
-  if (errors) {
+  let existingUser;
+  User.find({email: req.body.email})
+  .then(existingUser => {
+    if (errors) {
     res.status(400).json(errors);
-  } else {
-    let newUser = new User({
-      name: name,
-      email: email,
-      userName: userName,
-      password: password,
-      favoriteChannels: []
-    });
-    User.createUser(newUser, function(err, user) {
-      if (err) throw err;
-      req.login(user, function(err) {
-        if (err) {
-          throw err;
-        } else {
-          res.status(200).json(user);
-        }
+    }
+    else if (existingUser.length > 0) {
+      const message = [{msg: 'An account already exists with provided email address.'}];
+      res.status(400).json(message);
+    }
+    else {
+      let newUser = new User({
+        name: name,
+        email: email,
+        userName: userName,
+        password: password,
+        favoriteChannels: []
       });
-    });
-  }
+      User.createUser(newUser, function(err, user) {
+        if (err) throw err;
+        req.login(user, function(err) {
+          if (err) {
+            throw err;
+          } else {
+            res.status(200).json(user);
+          }
+        });
+      });
+    }     
+  })  
 });
 
 // Sign in strategy===================================================
