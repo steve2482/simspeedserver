@@ -20,11 +20,9 @@ var corsOptions = {
   credentials: true
 }
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(cookieParser());
-app.use(passport.initialize());
-
 
 // ===========================================================================
 // DATABASE SETUP=============================================================
@@ -45,12 +43,13 @@ const User = require('./models/user');
 app.use(session({
   secret: 'secret',
   saveUninitialized: false,
-  resave: true,
+  resave: false,
   cookie: {
     maxAge: 60 * 60 * 1000
   },
   rolling: true
 }));
+app.use(passport.initialize());
 app.use(passport.session());
 
 // Express Validator==========================================================
@@ -165,11 +164,22 @@ passport.deserializeUser(function(id, done) {
 
 // User Login=========================================================
 // ===================================================================
-app.post('/login',
-  passport.authenticate('local'),
-  function(req, res) {
-    res.status(200).json(req.user);
-  });
+app.post('/login', function(req, res, next) {
+  passport.authenticate('local', function(err, user, info) {
+    if (err) {return next(err);}
+    if (!user) {
+      const message = [{msg: info.message}]
+      console.log(message);
+      res.status(400).json(message);
+    }
+    req.logIn(user, function(err) {
+      if (err) {
+        return next(err);
+      }
+      res.status(200).json(req.user);
+    });
+  })(req, res, next);
+});
 
 // User Logout================================================================
 // ===========================================================================
@@ -189,6 +199,7 @@ app.get('/logout', function(req, res) {
 // Get channel names==========================================================
 // ===========================================================================
 app.get('/channel-names', (req, res) => {
+  console.log(req.isAuthenticated());
   Channel.find().sort({'abreviatedName': 1})
   .then(data => {
     // const channelNames = [];
