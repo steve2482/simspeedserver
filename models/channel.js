@@ -8,6 +8,4 @@ const channelSchema = mongoose.Schema({
   favorites: Number
 });
 
-const Channel = mongoose.model('Channel', channelSchema);
-
-module.exports = {Channel};
+const Channel = module.exports = mongoose.model('Channel', channelSchema);
