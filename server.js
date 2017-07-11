@@ -230,6 +230,66 @@ app.get('/live', (req, res) => {
   });
 });
 
+// Get upcoming broadcasts=============================================
+// ====================================================================
+app.get('/upcoming', (req,res) => {
+  // Find channels and build requests for upcoming broadcasts
+  return Channel.find()
+  .then(data => {
+    let apiKey = process.env.YOUTUBE_API_KEY;
+    const urls = [];
+    for (let i = 0; i < data.length; i++) {
+      urls.push(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${data[i].youtubeId}&eventType=upcoming&type=video&key=${apiKey}`);
+    }
+    // Fetch requests
+    Promise.all(
+      urls.map(urls => fetch(urls))
+    )
+    .then(response => Promise.all(response.map(response => response.json())))
+    .then(response => {
+      // Sort through each channel for upcoming broadcasts while building request for upcoming broadcast information      
+      let videoUrlRequests = [];
+      for (let i = 0; i < response.length; i++) {
+        for (let x = 0; x < response[i].items.length; x++) {
+          videoUrlRequests.push(`https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${response[i].items[x].id.videoId}&key=${apiKey}`);        
+        }
+      }
+      // Fetch requests for each upcoming video
+      Promise.all(
+        videoUrlRequests.map(videoUrlRequests => fetch(videoUrlRequests))
+      )
+      .then(response => Promise.all(response.map(response => response.json())))
+      .then(response => {
+        // Organize the data wanted into an array
+        let data = [];
+        for (let i = 0; i < response.length; i++) {
+          let eachUpcomingVideo = {
+            channelTitle: response[i].items[0].snippet.channelTitle,
+            title: response[i].items[0].snippet.title,
+            thumbnail: response[i].items[0].snippet.thumbnails.medium.url,
+            date: new Date(response[i].items[0].liveStreamingDetails.scheduledStartTime).toUTCString(),
+            videoId: response[i].items[0].id
+          };
+          data.push(eachUpcomingVideo);
+        }
+        // Sort by Date
+        data.sort((a, b) => {
+          return new Date(a.date) - new Date(b.date);
+        });
+        // Remove upcoming videos with dates prior to now
+        const cleanData = data.filter(videoInfo => {
+          return new Date(videoInfo.date) > new Date;
+        });
+        finalData = cleanData.slice(0, 8);
+        res.json(finalData);
+      });
+    });
+  })
+  .catch(err => {
+    console.log(err);
+  });
+});
+
 // Get Single Channel Results==========================================
 // ====================================================================
 app.post('/channel-videos', (req, res) => {
