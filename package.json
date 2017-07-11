@@ -4,7 +4,7 @@
   "description": "Application to find all the live sim racing events you would ever want.",
   "main": "public/js/index.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "node server.js",
     "test": "mocha --recursive"
   },
   "author": "Steve Brown",
