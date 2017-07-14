@@ -239,7 +239,7 @@ app.get('/upcoming', (req,res) => {
     let apiKey = process.env.YOUTUBE_API_KEY;
     const urls = [];
     for (let i = 0; i < data.length; i++) {
-      urls.push(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${data[i].youtubeId}&eventType=upcoming&type=video&key=${apiKey}`);
+      urls.push(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${data[i].youtubeId}&eventType=upcoming&type=video&maxResults=50&key=${apiKey}`);
     }
     // Fetch requests
     Promise.all(
@@ -280,6 +280,7 @@ app.get('/upcoming', (req,res) => {
         const cleanData = data.filter(videoInfo => {
           return new Date(videoInfo.date) > new Date;
         });
+        console.log(cleanData);
         finalData = cleanData.slice(0, 8);
         res.json(finalData);
       });
