@@ -280,7 +280,6 @@ app.get('/upcoming', (req,res) => {
         const cleanData = data.filter(videoInfo => {
           return new Date(videoInfo.date) > new Date;
         });
-        console.log(cleanData);
         finalData = cleanData.slice(0, 8);
         res.json(finalData);
       });
