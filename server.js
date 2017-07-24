@@ -255,9 +255,7 @@ app.get('/upcoming', (req,res) => {
         }
       }
       // Fetch requests for each upcoming video
-      Promise.all(
-        videoUrlRequests.map(videoUrlRequests => fetch(videoUrlRequests))
-      )
+      Promise.all(videoUrlRequests.map(videoUrlRequests => fetch(videoUrlRequests)))
       .then(response => Promise.all(response.map(response => response.json())))
       .then(response => {
         // Organize the data wanted into an array
@@ -280,9 +278,67 @@ app.get('/upcoming', (req,res) => {
         const cleanData = data.filter(videoInfo => {
           return new Date(videoInfo.date) > new Date;
         });
+        // Send only the next 8 broadcasts
         finalData = cleanData.slice(0, 8);
         res.json(finalData);
       });
+    });
+  })
+  .catch(err => {
+    console.log(err);
+  });
+});
+
+// Get Single Channel Upcoming Broadcasts==============================
+// ====================================================================
+app.post('/channel-upcoming', (req, res) => {
+  // Find channel info
+  Channel.find({abreviatedName: req.body.channelName})
+  .then(data => {
+    // Set request URL
+    let apiKey = process.env.YOUTUBE_API_KEY;
+    let channelId = data[0].youtubeId;
+    let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=upcoming&type=video&maxResults=50&key=${apiKey}`;
+    let request = new Request(url, {
+      method: 'GET',
+      headers: new Headers()
+    });
+    return fetch(request)
+    .then(response => response.json())
+    .then(response => {
+      // Sort through each channel for upcoming broadcasts while building request for upcoming broadcast information      
+      let videoUrlRequests = [];
+      for (let i = 0; i < response.items.length; i++) {
+          videoUrlRequests.push(`https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${response.items[i].id.videoId}&key=${apiKey}`);        
+      }
+      // Fetch requests for each upcoming video
+      Promise.all(videoUrlRequests.map(videoUrlRequests => fetch(videoUrlRequests)))
+      .then(response => Promise.all(response.map(response => response.json())))
+      .then(response => {
+        // Organize the data wanted into an array
+        let data = [];
+        for (let i = 0; i < response.length; i++) {
+          let eachUpcomingVideo = {
+            channelTitle: response[i].items[0].snippet.channelTitle,
+            title: response[i].items[0].snippet.title,
+            thumbnail: response[i].items[0].snippet.thumbnails.medium.url,
+            date: new Date(response[i].items[0].liveStreamingDetails.scheduledStartTime).toUTCString(),
+            videoId: response[i].items[0].id
+          };
+          data.push(eachUpcomingVideo);
+        }
+        // Sort by Date
+        data.sort((a, b) => {
+          return new Date(a.date) - new Date(b.date);
+        });
+        // Remove upcoming videos with dates prior to now
+        const cleanData = data.filter(videoInfo => {
+          return new Date(videoInfo.date) > new Date;
+        });
+        // Send only the next 4 broadcasts
+        finalData = cleanData.slice(0, 4);
+        res.json(finalData);
+      });      
     });
   })
   .catch(err => {
