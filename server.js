@@ -289,6 +289,33 @@ app.get('/upcoming', (req,res) => {
   });
 });
 
+// Get Channel Data/Banner=============================================
+// ====================================================================
+app.post('/channel-data', (req, res) => {
+  // Find channel info
+  Channel.find({abreviatedName: req.body.channelName})
+  .then(data => {
+    // Set request URL
+    let apiKey = process.env.YOUTUBE_API_KEY;
+    let channelId = data[0].youtubeId;
+    let url = `https://www.googleapis.com/youtube/v3/channels?part=brandingSettings&id=${channelId}&key=${apiKey}`;
+    let request = new Request(url, {
+      method: 'GET',
+      headers: new Headers()
+    });
+    return fetch(request)
+    .then(response => response.json())
+    .then(response => {
+      const channelInfo = response.items[0].brandingSettings;
+      const data = {
+        channelName: channelInfo.channel.title,
+        channelBanner: channelInfo.image.bannerImageUrl
+      };
+      res.json(data);
+    })  
+  })
+})
+
 // Get Single Channel Upcoming Broadcasts==============================
 // ====================================================================
 app.post('/channel-upcoming', (req, res) => {
