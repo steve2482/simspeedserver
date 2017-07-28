@@ -5,7 +5,8 @@ const channelSchema = mongoose.Schema({
   abreviatedName: String,
   name: String,
   youtubeId: String,
-  favorites: Number
+  favorites: Number,
+  type: String
 });
 
 const Channel = module.exports = mongoose.model('Channel', channelSchema);
